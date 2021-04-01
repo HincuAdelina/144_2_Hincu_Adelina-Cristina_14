@@ -1,7 +1,7 @@
 144_2_Hincu_Adelina-Cristina_14
 # POO Proiectul 2 Tema 14
 
-Tema 14. Se dau clasele:
+Tema 14. Se dau clasele :
 - Proces (int nrProces, string reclamant, string reclamat)
 - Proces_civil (double dauneMorale, double dauneMateriale, int nrMartori,
 bool stadiu)
