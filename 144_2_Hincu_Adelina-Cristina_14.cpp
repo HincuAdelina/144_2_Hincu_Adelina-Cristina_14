@@ -177,8 +177,9 @@ class Proces_penal: public Proces
 {
     int dovezi;
     bool stadiu;
+    static int s_nrProcesePenale;
 public:
-    Proces_penal(): Proces(), dovezi(0), stadiu(0) {}
+    Proces_penal(): Proces(), dovezi(0), stadiu(0) {s_nrProcesePenale++;}
     Proces_penal(int nr_proces, string nume1, string nume2, int Dovezi)
         :Proces(nr_proces, nume1, nume2)     //constructor parametrizat
     {
@@ -188,9 +189,10 @@ public:
             stadiu=1;
         else
             stadiu=0;
+        s_nrProcesePenale++;
     }
     Proces_penal(Proces_penal &proces_p)      //constructor de copiere
-        : Proces(proces_p.nrProces, proces_p.reclamant, proces_p.reclamat), dovezi(proces_p.dovezi) {}
+        : Proces(proces_p.nrProces, proces_p.reclamant, proces_p.reclamat), dovezi(proces_p.dovezi) {s_nrProcesePenale++;}
     ~Proces_penal()
     {
         nrProces = 0;
@@ -198,6 +200,8 @@ public:
         reclamat = "";
         dovezi = 0;
         stadiu = 0;
+
+        s_nrProcesePenale--;
     }
 
     void setStadiuPenal(bool stadiu)
@@ -241,7 +245,9 @@ public:
 
         return *this;
     }
+    static int GetNrProcesePenale() {return s_nrProcesePenale;}
 };
+int Proces_penal::s_nrProcesePenale = 0;
 
 
 std::istream& operator >>(std::istream& in,  Proces_penal& proces_p)
@@ -360,6 +366,8 @@ void MeniuInteractiv()
                 procese[i]->Afisare();
                 cout<<endl;
             }
+            for(int i=0; i<procese.size(); i++) delete procese[i];
+
         }
 
         OptiuniMeniu();
@@ -368,9 +376,29 @@ void MeniuInteractiv()
     }
 }
 
+void downcasting_and_static()
+{
+    Proces *proces = new Proces_civil(1,"Ana","Cristina",2.5,7,3);
+    //Proces *proces = new Proces_penal(2,"Ioana","Maria",10);
+
+
+    if(Proces_civil *proces_c = dynamic_cast<Proces_civil *>(proces))
+    {
+        proces_c -> Afisare();
+    }
+
+    if(Proces_penal *proces_p = dynamic_cast<Proces_penal *>(proces))
+    {
+        proces_p -> Afisare();
+    }
+
+    cout<<"Numarul proceselor penale: "<<Proces_penal::GetNrProcesePenale();
+}
 
 int main()
 {
+    //downcasting_and_static();
     MeniuInteractiv();
+
     return 0;
 }
