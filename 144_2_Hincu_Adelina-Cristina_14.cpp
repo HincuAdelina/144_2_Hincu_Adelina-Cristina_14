@@ -21,7 +21,7 @@ public:
     }
     Proces(Proces &proces)      //constructor de copiere
         : nrProces(proces.nrProces), reclamant(proces.reclamant), reclamat(proces.reclamat) {}
-    ~Proces()
+    virtual ~Proces()
     {
         nrProces = 0;
         reclamant = "";
@@ -37,7 +37,7 @@ public:
         reclamat = proces.reclamat;
         return *this;
     }
-
+    virtual int GetNrProces(){return  nrProces;}
     virtual void Afisare()
     {
         cout<<"PROCES:\nNumar proces: "<<nrProces<<"\nReclamant: "<<reclamant<<"\nReclamat: "<<reclamat<<endl;
@@ -102,11 +102,12 @@ public:
         nrMartori = 0;
         stadiu = 0;
     }
-
+    int GetNrProces(){return  nrProces;}
     void setStadiuCivil(bool stadiu)
     {
         this->stadiu = stadiu;
     }
+    bool getStadiu(){return stadiu;}
 
     friend std::istream& operator >>(std::istream& in,  Proces_civil& proces_c);
     friend std::ostream& operator <<(std::ostream& out, Proces_civil& proces_c);
@@ -165,7 +166,7 @@ std::istream& operator >>(std::istream& in,  Proces_civil& proces_c)
 std::ostream& operator <<(std::ostream& out, Proces_civil& proces_c)
 {
 
-    out<<"PROCES:\nNumar proces: "<<proces_c.nrProces<<"\nReclamant: "<<proces_c.reclamant<<"\nReclamat:"<<proces_c.reclamat<<"\nDaune morale: "
+    out<<"PROCES CIVIL:\nNumar proces: "<<proces_c.nrProces<<"\nReclamant: "<<proces_c.reclamant<<"\nReclamat:"<<proces_c.reclamat<<"\nDaune morale: "
     <<proces_c.dauneMorale<<"\nDaune materiale: "<<proces_c.dauneMateriale<<"\nNumar martori: "<<proces_c.nrMartori<<"\nStadiu: "<<proces_c.stadiu<<"\n";
 
     return out;
@@ -203,11 +204,12 @@ public:
 
         s_nrProcesePenale--;
     }
-
+    int GetNrProces(){return  nrProces;}
     void setStadiuPenal(bool stadiu)
     {
         this->stadiu = stadiu;
     }
+    bool getStadiu(){return stadiu;}
 
      void Afisare()
     {
@@ -257,7 +259,7 @@ std::istream& operator >>(std::istream& in,  Proces_penal& proces_p)
 std::ostream& operator <<(std::ostream& out, Proces_penal& proces_p)
 {
 
-    out<<"PROCES:\nNumar proces: "<<proces_p.nrProces<<"\nReclamant: "<<proces_p.reclamant<<"\nReclamat: "<<proces_p.reclamat
+    out<<"PROCES PENAL:\nNumar proces: "<<proces_p.nrProces<<"\nReclamant: "<<proces_p.reclamant<<"\nReclamat: "<<proces_p.reclamat
     <<"\nDovezi: "<<proces_p.dovezi<<"\nStadiu: "<<proces_p.stadiu<<"\n";
 
     return out;
@@ -323,14 +325,20 @@ void OptiuniMeniu()
     cout<< "0. Oprire." <<endl;
     cout<< "1. Cititi un proces." <<endl;
     cout<< "2. Cititi un proces civil si afisati taxa de timbru." <<endl;
-    cout<< "3. Afisati procesul civil cu taxa de timbru cea mai mare." <<endl;
-    cout<< "4. Cititi,memorati si afisati n procese." <<endl;
+    cout<< "3. Cititi si memorati n procese." <<endl;
+    cout<< "4. Afisati cele n procese." <<endl;
+    cout<< "5. Afisati procesul civil cu taxa de timbru cea mai mare." <<endl;
+    cout<< "6. Modificati stadiul procesului cu un anumit numar." <<endl;
+    cout<< "7. Afisati stadiile proceselor." <<endl;
+    cout<< "8. Stergeti procesul cu un anumit numar." <<endl;
+    cout<< "9. Inserati un proces." <<endl;
+    cout<< "10.Afisati numarul de procese penale."<<endl;
     cout<< endl;
 }
 
 void MeniuInteractiv()
 {
-
+    vector<Proces*> procese;
     cout<< "Alegeti o optiune: " <<endl;
     OptiuniMeniu();
     int optiune = 0;
@@ -339,7 +347,6 @@ void MeniuInteractiv()
     cin>>optiune;
     while(optiune != stop)
     {
-
         if(optiune == 1)
         {
             Proces* proces = citireProces();
@@ -353,27 +360,91 @@ void MeniuInteractiv()
         }
         else if(optiune == 3)
         {
-            Proces_civil proces_c;
-            proces_c = taxaMaxima();
-            cout<<proces_c;
-        }
-        else if(optiune == 4)
-        {
-            vector<Proces*> procese = citesteNProcese();
+            for(int i=0; i<procese.size(); i++) delete procese[i];
+            procese = citesteNProcese();
             cout<<endl;
+        }
+        else if(optiune==4)
+        {
             for(int i=0;i<procese.size();i++)
             {
                 procese[i]->Afisare();
                 cout<<endl;
             }
-            for(int i=0; i<procese.size(); i++) delete procese[i];
-
         }
-
+        else if(optiune == 5)
+        {
+            double taxaMax=0;
+            Proces_civil* proces_taxa_maxima;
+            for(int i=0;i<procese.size();i++)
+                if(Proces_civil *proces_c = dynamic_cast<Proces_civil *>(procese[i]))
+                {
+                    if(proces_c->taxaTimbru() > taxaMax)
+                    {
+                        proces_taxa_maxima = proces_c;
+                        taxaMax=proces_c->taxaTimbru();
+                    }
+                }
+            cout<<*proces_taxa_maxima<<"Taxa timbru: "<<taxaMax<<endl;;
+        }
+        else if(optiune == 6)
+        {
+            int nr;
+            bool s;
+            cout<<"Introduceti numarul procesului: ";
+            cin>>nr;
+            cout<<"\nIntroduceti stadiul: ";
+            cin>>s;
+            for(int i=0;i<procese.size();i++)
+                if(nr == procese[i]->GetNrProces())
+                    if(Proces_civil *proces_c = dynamic_cast<Proces_civil *>(procese[i]))
+                    {
+                        proces_c -> setStadiuCivil(s);
+                    }
+                    else if(Proces_penal *proces_p = dynamic_cast<Proces_penal *>(procese[i]))
+                    {
+                        proces_p -> setStadiuPenal(s);
+                    }
+        }
+        else if(optiune == 7)
+        {
+            for(int i=0;i<procese.size();i++)
+                if(Proces_civil *proces_c = dynamic_cast<Proces_civil *>(procese[i]))
+                    {
+                        cout<<"Stadiul procesului "<<proces_c->GetNrProces()<<" este: "<<proces_c -> getStadiu()<<endl;
+                    }
+                else if(Proces_penal *proces_p = dynamic_cast<Proces_penal *>(procese[i]))
+                    {
+                        cout<<"Stadiul procesului "<<proces_p->GetNrProces()<<" este: "<< proces_p -> getStadiu()<<endl;
+                    }
+        }
+        else if(optiune == 8)
+        {
+            int nr;
+            cout<<"Introduceti numarul procesului de sters: ";
+            cin>>nr;
+            for(int i=0;i<procese.size();i++)
+                if(nr == procese[i]->GetNrProces())
+                {
+                    delete procese[i];
+                    procese.erase(procese.begin() + i);
+                }
+        }
+        else if(optiune == 9)
+        {
+            Proces * proces = citireProces();
+            procese.push_back(proces);
+        }
+        else if(optiune == 10)
+        {
+            cout<<"Numarul proceselor penale: "<<Proces_penal::GetNrProcesePenale()<<endl;
+        }
+        else
+            cout<<"Optiunea nu exista!"<<endl;
         OptiuniMeniu();
         cin>>optiune;
-
     }
+    for(int i=0; i<procese.size(); i++) delete procese[i];
 }
 
 void downcasting_and_static()
@@ -399,6 +470,5 @@ int main()
 {
     //downcasting_and_static();
     MeniuInteractiv();
-
     return 0;
 }
